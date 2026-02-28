@@ -1,0 +1,19 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+# ifdef PI
+# define area(r) (PI * r * r)
+# else
+# define area(r) (3.1416 * r * r)
+# endif
+
+/**
+ * Compiladores 2026-2
+ *
+ */
+int main (void) {
+  printf ("Hola Mundo !\n"); // Función para imprimir Hola Mundo!
+  float mi_area = area(3); // Soy un comentario... hasta donde llegaré ?
+  printf ("Resultado : %f\n", mi_area);
+  return 0;
+}
