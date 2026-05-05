@@ -1,0 +1,87 @@
+\documentclass[11pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{config}
+
+\setlength{\parindent}{0pt}
+
+\title{
+  \LARGE{Compiladores 2026--2} \\ \vspace{.1cm}
+  \LARGE{Práctica 1} \\ \vspace{.1cm}
+  \LARGE{Análisis léxico con flex} \\ \vspace{.4cm}
+  \Large{Prof. Ariel Adara Mercado Martínez} \\ \vspace{.1cm}
+  \Large{Ayud. Carlos Gerardo Acosta Hernández} \\ \vspace{.1cm}
+  \Large{Adud. Luis Mario Escobar Rosales}
+}
+\author{
+  \Large{Rodrigo André Decuir Fuentes} \\
+  \Large{No. Cuenta: 320022711} \\
+  \href{mailto:ojo@ciencias.unam.mx}{ojo@ciencias.unam.mx} \vspace{.4cm}
+}
+\date{
+  \Large{Fecha de entrega: 10 de marzo} \\ \vspace{1.8cm}
+  \includegraphics[width=0.3\textwidth]{../../../../Assets/Img/ciencias}
+}
+
+\begin{document}
+
+\pagenumbering{gobble}
+\maketitle
+\clearpage
+\pagenumbering{arabic}
+
+\textbf{Pasos}
+
+\begin{enumerate}[label=\alph*.]
+  \item Transcribir el código anterior a un archivo con extensión .ll, .lex o .flex
+    dentro de la carpeta \textit{src/\textbf{Primer programa en Lex/}}
+  \item Compilar mediante la instrucción: \texttt{flex++ archivo.ll}
+  \item Comprobar que se genero el archivo \textit{lex.yy.cc}
+  \item Compilar mediante: \texttt{g++ lex.yy.cc -o nombreEjecutable}
+  \item Ejecutar mediante: \texttt{./nombreEjecutable}
+\end{enumerate}
+
+\textbf{Ejercicios}
+
+\begin{enumerate}
+  \item ¿Qué ocurre si en la primera sección se quitan las llaves al nombre de la macro
+    letra? (0.5 pts)
+    \textcolor{red}{Respuesta:} ya no se toma letra como la macro letra [a-zA-Z], sino
+    como la cadena "letra", de modo que solo se reconoce la palabra "letra".
+  \item ¿Qué ocurre si en la segunda sección se quitan las llaves a las macros? (0.5 pts)
+    \textcolor{red}{Respuesta:} se va a reconocer la palabra "digito" como un número y la
+    palabra "palabra" como una palabra. Cualquier otra cadena no será reconocida.
+  \item ¿Cómo se escribe un comentario en flex? (0.5 pts)
+    \textcolor{red}{Respuesta:} se escriben igual que los comentarios de varias líneas en C++:
+    /* esto es un comentario */
+  \item ¿Qué se guarda en yytext? (0.5 pts)
+    \textcolor{red}{Respuesta:} el texto que el analizador léxico (yylex) ya encontró y separó
+    y separó basándose en una regla.
+  \item ¿Qué pasa al ejecutar el programa e introducir cadenas de caracteres y de dígitos
+    por la consola? (0.5 pts)
+    \textcolor{red}{Respuesta:} Las cadenas de caracteres son reconocidas como palabras y
+    los dígitos son reconocidos como números.
+  \item ¿Qué ocurre si introducimos caracteres como "*" en la consola? (0.5 pts)
+    \textcolor{red}{Respuesta:} No son reconocidos, ni como palabras, ni como números.
+  \item Modificar al código anterior en un archivo nuevo, de tal manera que reconozca lo
+    siguiente: (2 pts)
+    \begin{enumerate}[label=\roman*.]
+      \item La expresión regular para los hexadecimales en lenguaje C++.
+      \item 5 palabras reservadas del lenguaje C++.
+      \item Los identificadores válidos del lenguaje C++, con longitud máxima de 32
+        caracteres (\textbf{Sugerencia}: use el operador \{m,n\}).
+      \item Los espacios en blanco.
+    \end{enumerate}
+    \textcolor{red}{Respuesta:} Archivo con el código modificado: Primer\_programa\_en\_Lex/archivo.ll
+  \item Describir el conjunto de terminales y la expresión regular que reconoce a cada
+    uno en \textit{lexer.ll}. (2 pts)
+    \textcolor{red}{Listo! Archivo modificado: C\_1/lexer.ll}
+  \item Generar acciones léxicas para cada terminal de nuestro lenguaje en \textit{Lexer.cpp},
+    de modo que se muestre en pantalla la salida esperada con el archivo \textit{prueba}. (2 pts)
+    \textcolor{red}{Listo! Archivo modificado: C\_1/lexer.ll}
+  \item Crear un \textit{Makefile}. (1 pt) \textcolor{red}{Listo! El Makefile se encuentra dentro de C\_1. Se compila con -make all- y se corre el programa con el test Prueba mediante -make run-: C\_1/lexer.ll}
+  \item Documentar el código. (0.25pts)
+  \item Proponer 4 archivos de prueba nuevos, 2 válidos y 2 inválidos. (0.25pts)
+\end{enumerate}
+
+\end{document}

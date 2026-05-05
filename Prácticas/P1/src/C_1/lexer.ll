@@ -13,17 +13,37 @@ using namespace std;
 %option yyclass="C_1::Lexer"
 %option case-insensitive
 
-
 DIG [0-9]
-
+LETRA [a-zA-Z]
+ID ({LETRA}|_)({LETRA}|{DIG}|_)*
+NUMERO {DIG}+(\.{DIG}+)?([eE][+-]?{DIG}+)?
+ESPACIO [ \t\n]+
 %%
+"if" { return IF; }
+"int" { return INT; }
+"while" { return WHILE; }
+"else" { return ELSE; }
+"float" { return FLOAT; }
 
+"+" { return MAS; }
+"-" { return MENOS; }
+"*" { return MUL; }
+"/" { return DIV; }
+"=" { return ASIG; }
+"(" { return LPAR; }
+")" { return RPAR; }
+"," { return COMA; }
+";" { return PYC; }
 
-.   { cout << "ERROR LEXICO" << yytext << endl;}
+{ID} { return ID; }
+{NUMERO} { return NUMERO; }
+
+{ESPACIO} { /*return ESP;*/ }
+
+. { cout << "ERROR LEXICO" << yytext << endl;}
 
 %%
 
 int yyFlexLexer::yywrap(){
     return 1;
 }
-
