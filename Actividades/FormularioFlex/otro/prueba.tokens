@@ -1,0 +1,14 @@
+<identificador, foo>
+<op_asignacion, :=>
+<palabra_reservada, true>
+<simbolo_especial, ;>
+<palabra_reservada, if>
+<simbolo_especial, (>
+<identificador, foo>
+<simbolo_especial, )>
+<palabra_reservada, then>
+<simbolo_especial, {>
+<identificador, mensaje>
+<op_asignacion, :=>
+<cadena_caracteres, "Entramos al if">
+<simbolo_especial, }>

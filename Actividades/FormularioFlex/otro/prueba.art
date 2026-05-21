@@ -1,0 +1,5 @@
+foo := true;
+
+if (foo) then {
+  mensaje := "Entramos al if"
+}
