@@ -1,0 +1,162 @@
+\documentclass[11pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{config}
+
+\setlength{\parindent}{0pt}
+
+\title{
+  \LARGE{Compiladores 2026--2} \\ \vspace{.1cm}
+  \LARGE{Práctica 2} \\ \vspace{.1cm}
+  \LARGE{Análisis sintáctico descendente} \\ \vspace{.4cm}
+  \Large{Prof. Ariel Adara Mercado Martínez} \\ \vspace{.1cm}
+  \Large{Ayud. Carlos Gerardo Acosta Hernández} \\ \vspace{.1cm}
+  \Large{Adud. Luis Mario Escobar Rosales}
+}
+\author{
+  \Large{Rodrigo André Decuir Fuentes} \\
+  \Large{No. Cuenta: 320022711} \\
+  \href{mailto:ojo@ciencias.unam.mx}{ojo@ciencias.unam.mx} \vspace{.4cm}
+}
+\date{
+  \Large{Fecha de entrega: 14 de abril} \\ \vspace{1.8cm}
+  \includegraphics[width=0.3\textwidth]{../../../../Assets/Img/ciencias}
+}
+
+\begin{document}
+
+\pagenumbering{gobble}
+\maketitle
+\clearpage
+\pagenumbering{arabic}
+
+\textbf{Ejercicios}
+
+Para la gramática $G = (N, \Sigma, P, S)$ descrita por las siguientes producciones:
+\begin{normalsize}
+\begin{verbatim}
+P = {
+  programa -> declaraciones sentencias
+  declaraciones -> declaraciones declaracion | declaracion
+  declaracion -> tipo lista-var ;
+  tipo -> int | float
+  lista_var -> lista_var, identificador | identificador
+  sentencias -> sentencias sentencia | sentencia
+  sentencia -> identificador = expresion; | if (expresion) sentencias else sentencias |
+  while (expresión) sentencias
+  expresion -> expresion + expresion | expresion - expresion | expresion * expresion |
+  expresion \ expresion | identificador | numero
+  expresion -> ( expresion )
+}
+\end{verbatim}
+\end{normalsize}
+
+\begin{enumerate}
+\item Determinar en un archivo Readme, en formato Markdown (.md) o LaTeX (.tex) -- con su
+  respectivo PDF, para este último --, los conjuntos $N, \Sigma$ y el símbolo inicial $S$.
+    (0.5 pts.) \\
+    \textcolor{red}{Respuesta:} \texttt{N = \{programa, declaraciones, sentencias, declaracion,
+    tipo, lista\_var, sentencia, expresion\}}, $\Sigma = \{$ \texttt{identificador, int, float,
+    if, (, ), while, *, -, +, $\backslash$, numero, else, ;, ',', =} $\}$, \texttt{S = } $\{$
+    \texttt{programa} $\}$.
+\item Mostrar en el archivo el proceso de eliminación de ambigüedad o justificar, en caso
+  de no ser necesario. (1 pts.) \\
+    \textcolor{red}{Respuesta:} Es necesario eliminar la ambigüedad porque no hay precedencia
+    de operadores ni asociatividad. Lo podemos hacer transformando la producción "expresion"
+    del siguiente modo (agregando las producciones termino y factor):
+    \begin{verbatim}
+expresion -> expresion + termino | expresion - termino | termino
+termino -> termino * factor | termino \ factor | factor
+factor -> identificador | numero | (expresion)
+    \end{verbatim}
+\item Mostrar en el archivo el proceso de eliminación de la recursividad izquierda o
+  justificar, en caso de no ser necesario. (1 pts.) \\
+  \textcolor{red}{Respuesta:} si hay recursividad izquierda, por lo que hay que eliminarla: \\
+
+    \begin{tabular}{ |p{13cm}|l| }
+  \hline
+  \textbf{Producciones} & \textbf{Reglas} \\
+  \hline
+  & \\
+  \texttt{declaraciones -> declaraciones declaracion | declaracion} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{declaraciones -> declaracion declaraciones'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{declaraciones' -> declaracion declaraciones' |} $\epsilon$  & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+  \texttt{lista}\_\texttt{var -> lista}\_\texttt{var, identificador | identificador} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{lista}\_\texttt{var -> identificador lista}\_\texttt{var'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{lista}\_\texttt{var' -> , identificador lista}\_\texttt{var' |} $\epsilon$ & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+\end{tabular} \\
+    \begin{tabular}{ |p{13cm}|l| }
+  & \\
+  \texttt{sentencias -> sentencias sentencia | sentencia} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{sentencias -> sentencia sentencias'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{sentencias' -> sentencia sentencias' |} $\epsilon$ & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+  \texttt{expresion -> expresion + termino | expresion - termino | termino} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{expresion -> termino expresion'}  & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{expresion' -> + termino expresion' | - termino expresion' |} $\epsilon$ & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+  \texttt{termino -> termino * factor | termino} $\backslash$ \texttt{factor | factor} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{termino -> factor termino'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{termino' -> * factor termino' |} $\backslash$ \texttt{factor termino' |} $\epsilon$. & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  \hline
+\end{tabular} \\
+\item Mostrar en el archivo el proceso de factorización izquierda o justificar, en caso de
+  no ser necesario. (1 pts.) \\
+    \textcolor{red}{Respuesta:} No es necesario, ya que no hay producciones que compartan prefijos.
+\item Mostrar en el archivo los nuevos conjuntos $N$ y $P$. (0.5 pts.) \\
+    \textcolor{red}{Respuesta:} \\
+    \texttt{N = \{programa, declaraciones, declaraciones', sentencias,
+    sentencias', declaracion, tipo, lista\_var, lista\_var', sentencia, expresion, expresion',
+    termino, termino', factor\}}. \\ \\
+    \texttt{P = \{} \\
+    \texttt{programa -> declaraciones sentencias} \\
+    \texttt{declaraciones -> declaracion declaraciones'} \\
+    \texttt{declaraciones' -> declaracion declaraciones' | } $\epsilon$ \\
+    \texttt{declaracion -> tipo lista-var ;} \\
+    \texttt{tipo -> int | float} \\
+    \texttt{lista\_var -> identificador lista\_var'} \\
+    \texttt{lista\_var' -> , identificador lista\_var' | } $\epsilon$ \\
+    \texttt{sentencias -> sentencia sentencias'} \\
+    \texttt{sentencias' -> sentencia sentencias' | } $\epsilon$ \\
+    \texttt{sentencia -> identificador = expresion;} \\
+    \texttt{| if (expresion) sentencias else sentencias} \\
+    \texttt{| while (expresión) sentencias} \\
+    \texttt{expresion -> termino expresion'} \\
+    \texttt{expresion' -> + termino expresion' | - termino expresion' | } $\epsilon$ \\
+    \texttt{termino -> factor termino'} \\
+    \texttt{termino' -> * factor termino' | } $\backslash$ \texttt{factor termino' | } $\epsilon$ \\
+    \texttt{factor -> identificador | numero | (expresion)} \\
+    \texttt{\}}
+\item Definir el Analizador Léxico (lexer.ll) con las acciones léxicas correspondientes.
+  (2 pts.) \\
+    \textcolor{red}{Respuesta:} Listo. Ya se encuentra definido en su archivo correspondiente: src/lexer.ll
+\item Implementar el Analizador Sintáctico (Parser.cpp) de descenso recursivo, documentando
+  las funciones de cada No-Terminal, de forma que el programa descrito en el archivo de
+    \textit{prueba} sea reconocido y aceptado por el analizador resultante (4 pts.) \\
+    \textcolor{red}{Respuesta:} Se implementó el analizador en Parser.cpp siguiendo directamente
+    la gramática transformada. Cada no-terminal tiene una función correspondiente: \\
+    \begin{itemize}
+      \item programa() — símbolo inicial; llama a declaraciones() y sentencias()
+      \item declaraciones() / declaraciones\_prima() — reconocen una o más declaraciones de variables
+      \item declaracion() — reconoce tipo lista\_var
+      \item tipo() — reconoce int o float
+      \item lista\_var() / lista\_var\_prima() — reconocen una lista de identificadores separados por comas
+      \item sentencias() / sentencias\_prima() — reconocen una o más sentencias
+      \item sentencia() — reconoce asignación (id = expr ;), if-else y while
+      \item expresion() / expresion\_prima() — reconocen sumas y restas con asociatividad izquierda
+      \item termino() / termino\_prima() — reconocen multiplicaciones y divisiones (mayor precedencia)
+      \item factor() — reconoce identificador, número o expresión parentizada
+    \end{itemize}
+    La función eat() consume el token actual y solicita el siguiente al lexer. Ante un token
+    inesperado se invoca error(), que reporta el problema y la línea. El análisis inicia en
+    parse(), que también verifica que se haya consumido toda la entrada al terminar.
+\item Documentar el código. (0.25 pts) \textbf{- No lo hice}
+\item Proponer 4 archivos de prueba nuevos, 2 válidos y 2 inválidos. (0.25 pts) \textbf{- No lo hice}
+\item Modificar el Makefile para poder simplificar el proceso de compilación de la práctica.
+  (1 pts) \textbf{- Si lo hice.}
+\end{enumerate}
+
+
+\end{document}
