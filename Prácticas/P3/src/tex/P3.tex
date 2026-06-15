@@ -1,0 +1,293 @@
+\documentclass[11pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{config}
+
+\setlength{\parindent}{0pt}
+
+\title{
+  \LARGE{Compiladores 2026--2} \\ \vspace{.1cm}
+  \LARGE{Práctica 3} \\ \vspace{.1cm}
+  \LARGE{Análisis sintáctico descendente predictivo} \\ \vspace{.4cm}
+  \Large{Prof. Ariel Adara Mercado Martínez} \\ \vspace{.1cm}
+  \Large{Ayud. Carlos Gerardo Acosta Hernández} \\ \vspace{.1cm}
+  \Large{Adud. Luis Mario Escobar Rosales}
+}
+\author{
+  \Large{Rodrigo André Decuir Fuentes} \\
+  \Large{No. Cuenta: 320022711} \\
+  \href{mailto:ojo@ciencias.unam.mx}{ojo@ciencias.unam.mx} \vspace{.4cm}
+}
+\date{
+  \Large{Fecha de entrega: 28 de abril} \\ \vspace{1.8cm}
+  \includegraphics[width=0.3\textwidth]{../../../../Assets/Img/ciencias}
+}
+
+\begin{document}
+
+\pagenumbering{gobble}
+\maketitle
+\clearpage
+\pagenumbering{arabic}
+
+\textbf{Ejercicios}
+
+Para la gramática $G = (N, \Sigma, P, S)$ descrita por las siguientes producciones:
+\begin{normalsize}
+\begin{verbatim}
+P = {
+    programa → declaraciones sentencias
+    declaraciones → declaraciones declaracion | declaracion
+    declaracion → tipo lista-var ;
+    tipo → int | float
+    lista_var → lista_var , identificador | identificador
+    sentencias → sentencias sentencia | sentencia
+    sentencia → identificador = expresion ; | if ( expresion ) sentencias
+  else
+    sentencias | while ( expresión ) sentencias
+    expresion → expresion + expresion | expresion - expresion | expresion *
+    expresion | expresion / expresión | identificador | numero
+    expresion → ( expresion )
+}
+\end{verbatim}
+\end{normalsize}
+
+\begin{enumerate}
+  \item Determinar en un archivo Readme, en formato Markdown (.md) o LaTeX (.tex) -- con su
+  respectivo PDF, para este último --, los conjuntos $N, \Sigma$ y el símbolo inicial $S$.
+    (0.5 pts.) \\
+    \textcolor{red}{Respuesta:} \texttt{N = \{programa, declaraciones, sentencias, declaracion,
+    tipo, lista\_var, sentencia, expresion\}}, $\Sigma = \{$ \texttt{identificador, int, float,
+    if, (, ), while, *, -, +, /, numero, else, ;, ',', =} $\}$, \texttt{S = } $\{$
+    \texttt{programa} $\}$.
+    \begin{enumerate}[label=\alph*.]
+      \item Mostrar en el archivo el proceso de eliminación de ambigüedad o justificar, en caso
+  de no ser necesario. (0.25 pts.) \\
+        \textcolor{red}{Respuesta:} Es necesario eliminar la ambigüedad porque no hay precedencia
+    de operadores ni asociatividad. Lo podemos hacer transformando la producción "expresion"
+    del siguiente modo (agregando las producciones termino y factor):
+    \begin{verbatim}
+expresion -> expresion + termino | expresion - termino | termino
+termino -> termino * factor | termino / factor | factor
+factor -> identificador | numero | (expresion)
+    \end{verbatim}
+      \item Mostrar en el archivo el proceso de eliminación de la recursividad izquierda o
+  justificar, en caso de no ser necesario. (0.25 pts.) \\
+        \textcolor{red}{Respuesta:} si hay recursividad izquierda, por lo que hay que eliminarla: \\
+
+     \begin{tabular}{ |p{13cm}|l| }
+  \hline
+  \textbf{Producciones} & \textbf{Reglas} \\
+  \hline
+  & \\
+  \texttt{declaraciones -> declaraciones declaracion | declaracion} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{declaraciones -> declaracion declaraciones'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{declaraciones' -> declaracion declaraciones' |} $\epsilon$  & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+  \texttt{lista}\_\texttt{var -> lista}\_\texttt{var, identificador | identificador} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{lista}\_\texttt{var -> identificador lista}\_\texttt{var'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{lista}\_\texttt{var' -> , identificador lista}\_\texttt{var' |} $\epsilon$ & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+\end{tabular} \\
+    \begin{tabular}{ |p{13cm}|l| }
+  & \\
+  \texttt{sentencias -> sentencias sentencia | sentencia} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{sentencias -> sentencia sentencias'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{sentencias' -> sentencia sentencias' |} $\epsilon$ & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+  \texttt{expresion -> expresion + termino | expresion - termino | termino} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{expresion -> termino expresion'}  & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{expresion' -> + termino expresion' | - termino expresion' |} $\epsilon$ & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  & \\
+  \texttt{termino -> termino * factor | termino} / \texttt{factor | factor} & $A$ \texttt{->} $A \alpha$ $|$ $\beta$ \\
+  \texttt{termino -> factor termino'} & $A$ \texttt{->} $\beta A'$ \\
+  \texttt{termino' -> * factor termino' |} / \texttt{factor termino' |} $\epsilon$. & $A'$ \texttt{->} $\alpha A'$ $|$ $\epsilon$ \\
+  \hline
+\end{tabular} \\
+      \item Mostrar en el archivo el proceso de factorización izquierda o justificar, en caso de
+  no ser necesario. (0.25 pts.) \\
+        \textcolor{red}{Respuesta:} No es necesario, ya que no hay producciones que compartan prefijos.
+      \item Mostrar en el archivo los nuevos conjuntos $N$' y $P$' que definen $G$'. (0.25 pts.) \\
+        \textcolor{red}{Respuesta:} \\
+        \texttt{N = \{programa, declaraciones, declaraciones', sentencias,
+        sentencias', declaracion, tipo, lista\_var, lista\_var', sentencia, expresion, expresion',
+        termino, termino', factor\}}. \\ \\
+        \texttt{P = \{} \\
+        \texttt{programa -> declaraciones sentencias} \\
+        \texttt{declaraciones -> declaracion declaraciones'} \\
+        \texttt{declaraciones' -> declaracion declaraciones' | } $\epsilon$ \\
+        \texttt{declaracion -> tipo lista-var ;} \\
+        \texttt{tipo -> int | float} \\
+        \texttt{lista\_var -> identificador lista\_var'} \\
+        \texttt{lista\_var' -> , identificador lista\_var' | } $\epsilon$ \\
+        \texttt{sentencias -> sentencia sentencias'} \\
+        \texttt{sentencias' -> sentencia sentencias' | } $\epsilon$ \\
+        \texttt{sentencia -> identificador = expresion;} \\
+        \texttt{| if (expresion) sentencias else sentencias} \\
+        \texttt{| while (expresión) sentencias} \\
+        \texttt{expresion -> termino expresion'} \\
+        \texttt{expresion' -> + termino expresion' | - termino expresion' | } $\epsilon$ \\
+        \texttt{termino -> factor termino'} \\
+        \texttt{termino' -> * factor termino' | } $\backslash$ \texttt{factor termino' | } $\epsilon$ \\
+        \texttt{factor -> identificador | numero | (expresion)} \\
+        \texttt{\}}
+    \end{enumerate}
+  \item Mostrar en el archivo la construcción de los conjuntos FIRST de la
+  gramática $G$'. (1 pt.) \\
+    \textcolor{red}{Respuesta:} \\
+    FIRST(factor) = $\{$ identificador, numero, ( $\}$ \\
+    FIRST(termino') = $\{$ *, /, $\epsilon$ $\}$ \\
+    FIRST(termino) = $\{$ identificador, numero, ( $\}$ \\
+    FIRST(expresion') = $\{$ +, -, $\epsilon$ $\}$ \\
+    FIRST(expresion) = $\{$ identificador, numero, ( $\}$ \\
+    FIRST(sentencia) = $\{$ identificador, if, while $\}$ \\
+    FIRST(sentencias') = $\{$ identificador, if, while, $\epsilon$ $\}$ \\
+    FIRST(sentencias) = $\{$ identificador, if, while $\}$ \\
+    FIRST(lista\_var') = $\{$, , $\epsilon$ $\}$ \\
+    FIRST(lista\_var) = $\{$identificador$\}$ \\
+    FIRST(tipo) = $\{$ int, float $\}$ \\
+    FIRST(declaracion) = $\{$ int, float $\}$ \\
+    FIRST(declaraciones') = $\{$ int, float, $\epsilon$ $\}$ \\
+    FIRST(declaraciones) = $\{$ int, float $\}$ \\
+    FIRST(programa) = $\{$ int, float $\}$
+  \item Mostrar en el archivo la construcción de los conjuntos FOLLOW de la
+  gramática $G$'. (1 pt.) \\
+    \textcolor{red}{Respuesta:} \\
+    FOLLOW(programa) = $\{$ \$ $\}$ \\
+    FOLLOW(sentencias) = $\{$ \$, else $\}$ \\
+    FOLLOW(sentencias') = $\{$ \$, else $\}$ \\
+    FOLLOW(sentencia) = $\{$ identificador, if, while, \$, else $\}$ \\
+    FOLLOW(declaraciones) = $\{$ identificador, if, while $\}$ \\
+    FOLLOW(declaraciones') = $\{$ identificador, if, while $\}$ \\
+    FOLLOW(declaracion) = $\{$ int, float, identificador, if, while $\}$ \\
+    FOLLOW(tipo) = $\{$ identificador $\}$ \\
+    FOLLOW(lista\_var) = $\{$ ; $\}$ \\
+    FOLLOW(lista\_var') = $\{$ ; $\}$ \\
+    FOLLOW(expresion) = $\{$ ;, ), else $\}$ \\
+    FOLLOW(expresion') = $\{$ ;, ), else $\}$ \\
+    FOLLOW(termino) = $\{$ +, -, ;, ), else $\}$ \\
+    FOLLOW(termino') = $\{$ +, -, ;, ), else $\}$ \\
+    FOLLOW(factor) = $\{$ *, /, +, -, ;, ), else $\}$
+  \item Mostrar en el archivo la construcción de la tabla de análisis sintáctico
+  predictivo para $G$'. (1 pt.) \\
+    \textcolor{red}{Respuesta:} \\
+    La tabla inicia en la siguiente página, dado que es muy
+    ancha... opte por particionarla; por cuestión de espacio y visibilidad. \\
+  \newpage
+  \begin{tabular}{ |l|l|l|l| }
+    \hline
+    \textbf{No Terminal} & \textbf{int / float} & \textbf{identificador} & \textbf{numero} \\
+    \hline
+    programa & declaraciones sentencias & & \\
+    declaraciones & declaracion declaraciones' & & \\
+    declaraciones' & declaracion declaraciones' & $\epsilon$ & \\
+    declaracion & tipo lista\_var ; & & \\
+    tipo & int $|$ float & & \\
+    lista\_var & & identificador lista\_var' & \\
+    lista\_var' & & & \\
+    sentencias & & sentencia sentencias' & \\
+    sentencias' & & sentencia sentencias' & \\
+    sentencia & & identificador = expresion ; & \\
+    expresion & & termino expresion' & termino expresion' \\
+    expresion' & & & \\
+    termino & & factor termino' & factor termino' \\
+    termino' & & & \\
+    factor & & identificador & numero \\
+    \hline
+  \end{tabular} \\
+
+  \begin{tabular}{ |l|l|l|l| }
+    \hline
+    \textbf{No Terminal} & \textbf{if} & \textbf{else} & \textbf{while} \\
+    \hline
+    programa & & & \\
+    declaraciones & & & \\
+    declaraciones' & $\epsilon$ & & $\epsilon$ \\
+    declaracion & & & \\
+    tipo & & & \\
+    lista\_var & & & \\
+    lista\_var' & & & \\
+    sentencias & sentencia sentencias' & & sentencia sentencias' \\
+    sentencias' & sentencia sentencias' & $\epsilon$ & sentencia sentencias' \\
+    sentencia & if ( expresion ) sentencias else sentencias & & while ( expresion ) sentencias \\
+    expresion & & & \\
+    expresion' & & $\epsilon$ & \\
+    termino & & & \\
+    termino' & & $\epsilon$ & \\
+    factor & & & \\
+    \hline
+  \end{tabular} \\
+
+  \begin{tabular}{ |l|l|l|l| }
+    \hline
+    \textbf{No Terminal} & \textbf{=} & \textbf{+ / -} & \textbf{* / /} \\
+    \hline
+    programa & & & \\
+    declaraciones & & & \\
+    declaraciones' & & & \\
+    declaracion & & & \\
+    tipo & & & \\
+    lista\_var & & & \\
+    lista\_var' & & & \\
+    sentencias & & & \\
+    sentencias' & & & \\
+    sentencia & & & \\
+    expresion & & & \\
+    expresion' & & + termino expresion'- termino expresion' & \\
+    termino & & & \\
+    termino' & & $\epsilon$ & * factor termino'/ factor termino' \\
+    factor & & & \\
+    \hline
+  \end{tabular} \\
+
+  \begin{tabular}{ |l|l|l|l|l|l| }
+    \hline
+    \textbf{No Terminal} & \textbf{$($} & \textbf{$)$} & \textbf{;} & \textbf{,} & \textbf{\$} \\
+    \hline
+    programa & & & & & \\
+    declaraciones & & & & & \\
+    declaraciones' & & & & & \\
+    declaracion & & & & & \\
+    tipo & & & & & \\
+    lista\_var & & & & & \\
+    lista\_var' & & & $\epsilon$ & , identificador lista\_var' & \\
+    sentencias & & & & & \\
+    sentencias' & & & & & $\epsilon$\\
+    sentencia & & & & & \\
+    expresion & termino expresion' & & & & \\
+    expresion' & & $\epsilon$ & $\epsilon$ & & \\
+    termino & factor termino' & & & & \\
+    termino' & & $\epsilon$ & $\epsilon$ & & \\
+    factor & ( expresion )& & & & \\
+    \hline
+  \end{tabular} \\
+
+   \item Sustituir el contenido del Analizador Léxico (lexer.ll) con el
+  implementado en la segunda práctica. (0.5 pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+  \item Definir en un comentario de Symbols.hpp la gramática $G$'. (0.05 pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+  \item Definir $\Sigma$ en un enum de Symbols.hpp. (0.10 pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+  \item Definir $N$' en un enum de Symbols.hpp. (0.10 pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+  \item Cargar $N$' $\cup$ $\Sigma$ en ParserLL.cpp. (0.25 pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+  \item Cargar $P$' en ParserLL.cpp. (0.25 pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+  \item Cargar la tabla de análisis sintáctico predictivo en ParserLL.cpp. (0.25)
+  pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+  \item Implementar el algoritmo de análisis sintáctico de descenso predictivo
+  en ParserLL.cpp de modo que el programa acepte el archivo prueba. (4 pts.) \\
+    \textcolor{red}{Respuesta:} Listo.
+\end{enumerate}
+
+\textbf{Extras} \\
+
+Documentar el código. (0.25pts) - No lo hice. \\
+
+Proponer 4 archivos de prueba nuevos, 2 válidos y 2 inválidos. (0.25pts) - No lo hice. \\
+
+
+\end{document}
