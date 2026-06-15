@@ -1,0 +1,202 @@
+\documentclass[11pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{config}
+
+\setlength{\parindent}{0pt}
+
+\title{
+  \LARGE{Compiladores 2026--2} \\ \vspace{.1cm}
+  \LARGE{Práctica 4} \\ \vspace{.1cm}
+  \LARGE{Analizadores sintácticos con Yacc/Bison} \\ \vspace{.4cm}
+  \Large{Prof. Ariel Adara Mercado Martínez} \\ \vspace{.1cm}
+  \Large{Ayud. Carlos Gerardo Acosta Hernández} \\ \vspace{.1cm}
+  \Large{Adud. Luis Mario Escobar Rosales}
+}
+\author{
+  \Large{Rodrigo André Decuir Fuentes} \\
+  \Large{No. Cuenta: 320022711} \\
+  \href{mailto:ojo@ciencias.unam.mx}{ojo@ciencias.unam.mx} \vspace{.4cm}
+}
+\date{
+  \Large{Fecha de entrega: 12 de mayo} \\ \vspace{1.8cm}
+  \includegraphics[width=0.3\textwidth]{../../../../Assets/Img/ciencias}
+}
+
+\begin{document}
+
+\pagenumbering{gobble}
+\maketitle
+\clearpage
+\pagenumbering{arabic}
+
+\textbf{Ejercicios}
+
+Los ejercicios 1--4 piden extender la calculadora del ejemplo.
+El ejercicio 5 pide construir el analizador léxico-sintáctico completo para la gramática $G$.
+
+\begin{enumerate}
+
+  % -------------------------------------------------------
+  \item Modificar el código fuente para que la calculadora pueda operar con flotantes,
+  no solamente enteros. \\
+  \textcolor{red}{Respuesta:} Se modificó el \texttt{\%union} en \texttt{calculadora.yy}
+  para usar \texttt{double} en lugar de \texttt{int} y se amplió la expresión regular del
+  lexer para reconocer la forma \texttt{DIG+.DIG+}. La acción del lexer llama
+  \texttt{atof(yytext)} y marca \texttt{tipo = 2} (flotante). Las acciones
+  semánticas de \texttt{expresion} ahora propagan \texttt{double} mediante
+  operaciones de punto flotante, de modo que \texttt{1.5 + 2.5} produce 4.0 en lugar
+  de 4 (entero).
+
+  % -------------------------------------------------------
+  \item Modificar el código fuente para que la calculadora pueda reconocer más líneas
+  con expresiones en el archivo de entrada. \\
+  \textcolor{red}{Respuesta:} Se agregó la producción
+  \begin{verbatim}
+program : program line
+        | line
+        ;
+  \end{verbatim}
+  como símbolo inicial (\texttt{\%start program}), donde cada \texttt{line} es una
+  \texttt{expresion} seguida de \texttt{'\\n'} o \texttt{EOF}.
+  El lexer devuelve el token \texttt{NEWLINE} al encontrar \texttt{'\\n'} y el
+  analizador lo usa como delimitador de cada expresión, permitiendo archivos con
+  múltiples líneas.
+
+  % -------------------------------------------------------
+  \item Modificar el código fuente para que la calculadora pueda operar con restas y
+  divisiones. \\
+  \textcolor{red}{Respuesta:} Se declararon los tokens \texttt{MENOS} y \texttt{DIV}
+  en el parser con la misma precedencia y asociatividad que \texttt{MAS} y \texttt{MUL}
+  (\texttt{\%left MENOS} al mismo nivel que \texttt{MAS}, \texttt{\%left DIV} al
+  mismo nivel que \texttt{MUL}).
+  Las reglas gramaticales se extendieron:
+  \begin{verbatim}
+expresion : expresion MAS expresion { $$.dval = $1.dval + $3.dval; }
+          | expresion MENOS expresion { $$.dval = $1.dval - $3.dval; }
+          | expresion MUL  expresion { $$.dval = $1.dval * $3.dval; }
+          | expresion DIV  expresion {
+              if ($3.dval == 0) { yyerror("division por cero"); }
+              else { $$.dval = $1.dval / $3.dval; }
+            }
+          | PARIZQ expresion PARDER { $$ = $2; }
+          | NUM { $$ = $1; }
+          ;
+  \end{verbatim}
+  El lexer reconoce \texttt{"-"} y \texttt{"/"} y devuelve los tokens correspondientes.
+
+  % -------------------------------------------------------
+  \item Modificar el código fuente para que la calculadora admita números negativos. \\
+  \textcolor{red}{Respuesta:} Se añadió la producción unaria
+  \begin{verbatim}
+factor : MENOS factor %prec UMINUS { $$.dval = -$2.dval; }
+  \end{verbatim}
+  con una precedencia especial \texttt{UMINUS} definida con \texttt{\%right UMINUS}
+  a un nivel superior a \texttt{MUL} y \texttt{DIV}, para que el operador unario
+  \texttt{-} tenga mayor prioridad que los operadores binarios. Así,
+  \texttt{-3 * 2} se evalúa como \texttt{(-3) * 2 = -6}.
+
+  % -------------------------------------------------------
+  \item Para la gramática $G = (N, \Sigma, P, S)$ descrita por las siguientes
+  producciones:
+\begin{normalsize}
+\begin{verbatim}
+P = {
+    programa -> declaraciones sentencias
+    declaraciones -> declaraciones declaracion | declaracion
+    declaracion -> tipo lista-var ;
+    tipo -> int | float
+    lista_var -> lista_var , identificador | identificador
+    sentencias -> sentencias sentencia | sentencia
+    sentencia -> identificador = expresion ;
+               | if ( expresion ) { sentencias } else { sentencias }
+               | while ( expresion ) { sentencias }
+    expresion -> expresion + expresion | expresion - expresion
+               | expresion * expresion | expresion / expresion
+               | identificador | numero | ( expresion )
+}
+\end{verbatim}
+\end{normalsize}
+
+  Crear una carpeta llamada \texttt{C\_1} para alojar el analizador léxico y el
+  analizador sintáctico de dicha gramática. \\
+
+    \begin{enumerate}[label=\alph*.]
+
+      \item Basándose en la estructura del código de la calculadora, transcribir el
+      archivo de Flex de la práctica 2 en un archivo de Flex. \\
+      \textcolor{red}{Respuesta:} Listo. El archivo se encuentra en
+      \texttt{C\_1/src/lexer.ll}. Reconoce las mismas palabras reservadas
+      (\texttt{int}, \texttt{float}, \texttt{if}, \texttt{else}, \texttt{while}),
+      identificadores de hasta 32 caracteres, enteros, flotantes
+      (\texttt{DIG+.DIG+}) y todos los operadores y delimitadores de la gramática.
+      Cada acción léxica imprime en pantalla el terminal detectado.
+
+      \item Escribir en un archivo de Bison la gramática definida. \\
+      \textcolor{red}{Respuesta:} Listo. El archivo se encuentra en
+      \texttt{C\_1/src/parser.yy}. La gramática se transformó previamente para
+      eliminar ambigüedad y recursividad izquierda, obteniendo $G'$:
+
+        Dado que en verbatim no jalan los pipes ($|$) para más fácil use una 'o'.
+
+programa       -> declaraciones sentencias \\
+declaraciones  -> declaracion declaraciones' \\
+declaraciones' -> declaracion declaraciones' $|$ $\epsilon$ \\
+declaracion    -> tipo lista\_var ; \\
+tipo           -> int $|$ float \\
+lista\_var      -> identificador lista\_var' \\
+lista\_var'     -> , identificador lista\_var' $|$ $\epsilon$ \\
+sentencias     -> sentencia sentencias' \\
+sentencias'    -> sentencia sentencias' $|$ $\epsilon$ \\
+sentencia      -> identificador = expresion ; \\
+               $|$ if ( expresion ) { sentencias } else { sentencias } \\
+               $|$ while ( expresion ) { sentencias } \\
+expresion      -> termino expresion' \\
+expresion'     -> + termino expresion' o - termino expresion' $|$ $\epsilon$ \\
+termino        -> factor termino' \\
+termino'       -> * factor termino' $|$ / factor termino' $|$ $\epsilon$ \\
+factor         -> identificador $|$ numero $|$ - factor $|$ ( expresion ) \\
+
+      Se declaró el \texttt{\%union} con el campo \texttt{numero} (que contiene
+      \texttt{dval} y \texttt{tipo}) y \texttt{sval} para identificadores. Los tokens
+      se anotaron con los campos correspondientes y los no-terminales con el tipo
+      \texttt{attr}.
+
+      \item Proponer un mensaje de error sintáctico más explícito. \\
+      \textcolor{red}{Respuesta:} Se sobrescribió la función
+      \texttt{C1::Parser::error()} para que imprima:
+      \begin{verbatim}
+Error sintáctico: <mensaje de Bison>
+      \end{verbatim}
+      Bison incluye en el mensaje el token inesperado y su posición, lo cual es
+      considerablemente más informativo que el simple \texttt{"syntax error"}
+      predeterminado.
+
+      \item Proponer archivos de prueba con derivaciones válidas. \\
+      \textcolor{red}{Respuesta:} El archivo \texttt{C\_1/src/prueba} contiene una
+      derivación válida con declaraciones de variables enteras y flotantes,
+      asignaciones con expresiones aritméticas (incluyendo negativos), una sentencia
+      \texttt{if-else} y una sentencia \texttt{while}:
+\begin{verbatim}
+int a, b, c;
+float x, y;
+a = 10;
+b = 20;
+c = a + b * 2;
+x = 3.14;
+y = -2.5 + x;
+if (a) { a = a - 1; } else { b = b + 1; }
+while (c) { c = c / 2; }
+\end{verbatim}
+
+    \end{enumerate}
+
+\end{enumerate}
+
+\textbf{Extras} \\
+
+Documentar el código. (0.25pts) --- Listo. \\
+
+Proponer 4 archivos de prueba nuevos, 2 válidos y 2 inválidos. (0.25pts) --- No lo hice. \\
+
+\end{document}

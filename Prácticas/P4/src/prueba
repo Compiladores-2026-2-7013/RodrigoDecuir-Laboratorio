@@ -1,0 +1,15 @@
+int x, y;
+float resultado;
+
+x = 10;
+y = 20;
+
+if (x) {
+    resultado = x + y;
+} else {
+    resultado = y - x;
+}
+
+while (y) {
+    y = y - 1;
+}
