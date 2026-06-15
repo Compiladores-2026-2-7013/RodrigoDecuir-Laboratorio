@@ -136,26 +136,23 @@ P = {
       \textcolor{red}{Respuesta:} Listo. El archivo se encuentra en
       \texttt{C\_1/src/parser.yy}. La gramática se transformó previamente para
       eliminar ambigüedad y recursividad izquierda, obteniendo $G'$:
-
-        Dado que en verbatim no jalan los pipes ($|$) para más fácil use una 'o'.
-
-programa       -> declaraciones sentencias \\
-declaraciones  -> declaracion declaraciones' \\
-declaraciones' -> declaracion declaraciones' $|$ $\epsilon$ \\
-declaracion    -> tipo lista\_var ; \\
-tipo           -> int $|$ float \\
-lista\_var      -> identificador lista\_var' \\
-lista\_var'     -> , identificador lista\_var' $|$ $\epsilon$ \\
-sentencias     -> sentencia sentencias' \\
-sentencias'    -> sentencia sentencias' $|$ $\epsilon$ \\
-sentencia      -> identificador = expresion ; \\
+programa       $->$ declaraciones sentencias \\
+declaraciones  $->$ declaracion declaraciones' \\
+declaraciones' $->$ declaracion declaraciones' $|$ $\epsilon$ \\
+declaracion    $->$ tipo lista\_var ; \\
+tipo           $->$ int $|$ float \\
+lista\_var      $->$ identificador lista\_var' \\
+lista\_var'     $->$ , identificador lista\_var' $|$ $\epsilon$ \\
+sentencias     $->$ sentencia sentencias' \\
+sentencias'    $->$ sentencia sentencias' $|$ $\epsilon$ \\
+sentencia      $->$ identificador = expresion ; \\
                $|$ if ( expresion ) { sentencias } else { sentencias } \\
                $|$ while ( expresion ) { sentencias } \\
-expresion      -> termino expresion' \\
-expresion'     -> + termino expresion' o - termino expresion' $|$ $\epsilon$ \\
-termino        -> factor termino' \\
-termino'       -> * factor termino' $|$ / factor termino' $|$ $\epsilon$ \\
-factor         -> identificador $|$ numero $|$ - factor $|$ ( expresion ) \\
+expresion      $->$ termino expresion' \\
+expresion'     $->$ + termino expresion' o - termino expresion' $|$ $\epsilon$ \\
+termino        $->$ factor termino' \\
+termino'       $->$ * factor termino' $|$ / factor termino' $|$ $\epsilon$ \\
+factor         $->$ identificador $|$ numero $|$ - factor $|$ ( expresion ) \\
 
       Se declaró el \texttt{\%union} con el campo \texttt{numero} (que contiene
       \texttt{dval} y \texttt{tipo}) y \texttt{sval} para identificadores. Los tokens
